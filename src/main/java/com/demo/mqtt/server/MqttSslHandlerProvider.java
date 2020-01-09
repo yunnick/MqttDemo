@@ -18,8 +18,11 @@ public class MqttSslHandlerProvider {
 
     private String sslProtocol;
     private static final String KEY_STORE_FILE = "mqttserver.jks";
-    private static final String KEY_STORE_PASSWORD = "123456";
-    private static final String KEY_PASSWORD = "123456";
+    private static final String KEY_STORE_PASSWORD = "@lmggTy6XNZmJwu7";
+    private static final String KEY_PASSWORD = "@lmggTy6XNZmJwu7";
+
+//    private static final String KEY_STORE_PASSWORD = "WETuK4*z%zRB!Ew0";
+//    private static final String KEY_PASSWORD = "WETuK4*z%zRB!Ew0";
     private static final String KEY_STORE_TYPE = "JKS";
 
     private TransportService transportService = new TransportService();

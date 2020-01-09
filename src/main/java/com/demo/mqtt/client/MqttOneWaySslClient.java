@@ -16,7 +16,9 @@ import java.security.cert.X509Certificate;
 
 public class MqttOneWaySslClient {
 
-    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
+    private static final String MQTT_URL = "ssl://test-siot2.stc-seedland.com.cn:8883";
+//    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
+//    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:8883";
 
     private static final String CLIENT_ID = "MQTT_SSL_JAVA_CLIENT";
     private static final String KEY_STORE_FILE = "mqttserver.pub.pem";
@@ -43,7 +45,7 @@ public class MqttOneWaySslClient {
 
             MqttConnectOptions options = new MqttConnectOptions();
             options.setSocketFactory(sslContext.getSocketFactory());
-            options.setUserName("YHtxAM9wI7y64jjIYa5y");
+            options.setUserName("DEV_M0kMFh5uKeQjh7MNvLuv");
 
             MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, CLIENT_ID, new MemoryPersistence());
             client.connect(options);

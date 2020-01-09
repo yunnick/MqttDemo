@@ -14,12 +14,18 @@ import java.security.KeyStore;
 
 public class MqttTwoWaySslClient {
 
-    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
+//    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
+//    private static final String CLIENT_KEYSTORE_PASSWORD = "57tzBgVC1nE9Yk7r";
+//    private static final String CLIENT_KEY_PASSWORD = "57tzBgVC1nE9Yk7r";
+
+
+    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:8883";
+    private static final String CLIENT_KEYSTORE_PASSWORD = "@lmggTy6XNZmJwu7";
+    private static final String CLIENT_KEY_PASSWORD = "@lmggTy6XNZmJwu7";
 
     private static final String clientId = "MQTT_SSL_JAVA_CLIENT";
     private static final String keyStoreFile = "mqttclient.jks";
-    private static final String CLIENT_KEYSTORE_PASSWORD = "123456";
-    private static final String CLIENT_KEY_PASSWORD = "123456";
+
     private static final String JKS="JKS";
     private static final String TLS="TLSV1.2";
 

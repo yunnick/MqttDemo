@@ -183,6 +183,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     private void processConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
+        System.out.println("payload is :" + msg.payload().toString());
         ctx.writeAndFlush(createMqttConnAckMsg(MqttConnectReturnCode.CONNECTION_ACCEPTED));
         connected = true;
     }

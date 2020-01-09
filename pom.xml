@@ -89,8 +89,27 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <runtime.env>src/main/resources/local</runtime.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <runtime.env>src/main/resources/test</runtime.env>
+            </properties>
+        </profile>
+    </profiles>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${runtime.env}</directory>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
