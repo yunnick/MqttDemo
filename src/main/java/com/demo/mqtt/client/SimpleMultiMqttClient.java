@@ -1,9 +1,14 @@
 package com.demo.mqtt.client;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.eclipse.paho.client.mqttv3.*;
 
-public class SimpleMqttClient3 {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class SimpleMultiMqttClient {
     //    private static final String MQTT_URL = "tcp://test-siot2.stc-seedland.com.cn:1883";
 //    private static final String MQTT_URL = "tcp://127.0.0.1:1883";
 //    private static final String MQTT_URL = "tcp://140.143.212.101:1883";//siot2
@@ -13,10 +18,25 @@ public class SimpleMqttClient3 {
 
 
     public static void main(String[] args) throws Exception {
-        doMqtt();
+        List<Thread> list = new ArrayList<>();
+        for (int i = 0; i < 100; i++){
+            final int  idx = i;
+            Thread t = new Thread(() -> {
+                try {
+                    doMqtt(idx);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                });
+            list.add(t);
+            t.start();
+        }
+        for (Thread t: list){
+            t.join();
+        }
     }
 
-    private static void doMqtt() throws InterruptedException {
+    private static void doMqtt(int i) throws InterruptedException {
         try {
             MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, RandomStringUtils.randomAlphanumeric(10));
             MqttConnectOptions options = new MqttConnectOptions();
@@ -36,30 +56,13 @@ public class SimpleMqttClient3 {
             client.connect(options, connMessage, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    System.out.println("success with msg: " + asyncActionToken.getResponse());
+                    System.out.println(i + "success with msg: " + asyncActionToken.getResponse());
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    System.err.println("fail with msg: " + asyncActionToken.getResponse());
+                    System.err.println(i + "fail with msg: " + asyncActionToken.getResponse());
                     exception.printStackTrace();
-                }
-            });
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    System.err.println("Connect lost==========");
-                    cause.printStackTrace();
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    System.out.println("get from topic " + topic + ": msg:"+message);
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-//                    System.out.println("deliveryComplete");
                 }
             });
             while (!client.isConnected()){
@@ -73,56 +76,47 @@ public class SimpleMqttClient3 {
              * 2、创建设备
              */
 //        String entityName = "Guard-32e06bd9a009";
-            String entityName = "ProjectX-04";
+            String entityName = "ProjectX-02";
             message.setPayload(getDevicePayload(entityName));
             System.out.println("create device");
 
 //        String entityName ="77789";
 //        message.setPayload(getServicePayload(entityName));
 //        System.out.println("create service");
+        Thread.sleep(RandomUtils.nextInt(1000, 100000));
+        client.publish("v1/gateway/connect", message);
 
-            client.publish("v1/gateway/connect", message);
-            Thread.sleep(2000);
-            int i = 0;
 
 //            subAttributeUpdate(entityName, client);
-            long sleepTime = 115;
-            //get attribute from server
+        //get attribute from server
 //            waitAttribure(client);
 
-            while (i++ < 15000 ){
-                long ts = System.currentTimeMillis();
+            long ts = System.currentTimeMillis();
 //                unsbuAttr(i, client);
 
 //                ping(client);
 
-                /**
-                 * 3、发送属性数据
-                 */
-                pubAttr(i, entityName, client);
-                /**
-                 * 4、发送遥测数据
-                 */
-                sendTelemetry(entityName, client, ts);
+            /**
+             * 3、发送属性数据
+             */
+//            pubAttr(i, entityName, client);
+            /**
+             * 4、发送遥测数据
+             */
+            Thread.sleep(RandomUtils.nextInt(1000, 100000));
+            sendTelemetry(entityName, client, ts);
 
-                /**
-                 * 5、获取属性
-                 */
+            /**
+             * 5、获取属性
+             */
 //                requestAttrubute(entityName, client, i);
-
-                Thread.sleep(sleepTime);
-                System.out.println("send again" + i);
-
-            }
 
             System.out.println("send finish");
             Thread.sleep(20000);
             client.disconnect();
-            System.out.println("Disconnected");
-            System.exit(0);
+            System.out.println(i+"Disconnected");
         }catch (MqttException e){
             e.printStackTrace();
-            doMqtt();
         }
     }
 
@@ -210,7 +204,7 @@ public class SimpleMqttClient3 {
         MqttMessage message = new MqttMessage();
         System.out.println("publish tel");
 
-        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version\":\"1.0\",\"feature_id\":\"FeatureSTDMediaAlarm\",\"event_id\":\"STDMediaAlarmReport\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"media_url\":\"http://siothost:8080/api/v1/media/download/1ea89e07b31ead0abd14508d3aa1de2/2020-05-08-10-47-00.wav\"}}]}").getBytes());
+        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version\":\"1.0\",\"feature_id\":\"FeatureSTDMediaAlarm\",\"event_id\":\"STDMediaAlarmReport\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"media_url\":\"http://siothost/static/media/warn.mp3\"}}]}").getBytes());
         client.publish("v1/gateway/telemetry", message);
 
     }

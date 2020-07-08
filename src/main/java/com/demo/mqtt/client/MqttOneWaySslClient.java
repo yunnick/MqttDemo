@@ -20,11 +20,12 @@ public class MqttOneWaySslClient {
 //    private static final String MQTT_URL = "ssl://test-siot2.stc-seedland.com.cn:8883";
 //    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
 //    private static final String MQTT_URL = "ssl://127.0.0.1:8883";
-//    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:8883";
-private static final String MQTT_URL = "ssl://10.22.62.202:8883";
+    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:28883";
+//private static final String MQTT_URL = "ssl://10.22.62.202:8883";
 
 //    private static final String token = "kZAXTQuYj5pMf7e3wxPN";//local
-    private static final String token = "bUVoaTTqsUC5qxHUtfLI";//pi
+//    private static final String token = "bUVoaTTqsUC5qxHUtfLI";//pi
+    private static final String token = "3YjfhRYRptdFblY1tfCo";//test
 
     private static final String CLIENT_ID = "MQTT_SSL_JAVA_CLIENT";
     private static final String KEY_STORE_FILE = "mqttserver.pub.pem";
@@ -112,7 +113,7 @@ private static final String MQTT_URL = "ssl://10.22.62.202:8883";
     static void authDevice(SSLContext sslContext) throws MqttException, InterruptedException {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setSocketFactory(sslContext.getSocketFactory());
-        options.setUserName("bUVoaTTqsUC5qxHUtfLI");
+        options.setUserName(token);
 
         MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, CLIENT_ID, new MemoryPersistence());
         client.connect(options);
