@@ -3,11 +3,14 @@ package com.demo.mqtt.client;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class SimpleMqttClient {
     //    private static final String MQTT_URL = "tcp://test-siot2.stc-seedland.com.cn:1883";
     private static final String MQTT_URL = "tcp://127.0.0.1:1883";
 //    private static final String MQTT_URL = "tcp://140.143.212.101:1883";//siot2
-//    private static final String MQTT_URL = "tcp://10.22.30.100:1883";//pi
+//    private static final String MQTT_URL = "tcp://10.22.30.16:1883";//pi
 
 //    private static final String MQTT_URL = "tcp://test-iot-as-mqtt.stc-seedland.com.cn:1883";
 
@@ -26,7 +29,7 @@ public class SimpleMqttClient {
 //            options.setUserName("bUVoaTTqsUC5qxHUtfLI");//pi
         options.setUserName("kZAXTQuYj5pMf7e3wxPN");//local
 //        options.setUserName("YYdevGZ6kaXNct0FFdy1");//local service
-
+            options.setKeepAliveInterval(0);
 
             MqttMessage connMessage = new MqttMessage();
 //        connMessage.setPayload("{\"connect\":true}".getBytes());
@@ -54,7 +57,8 @@ public class SimpleMqttClient {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    System.out.println("get from topic " + topic + ": msg:"+message);
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S");
+                    System.out.println(simpleDateFormat.format(new Date()) + " get from topic " + topic + ": msg:"+message);
                 }
 
                 @Override
@@ -69,11 +73,14 @@ public class SimpleMqttClient {
             System.out.println("connected");
             Thread.sleep(1000);
             MqttMessage message = new MqttMessage();
+
+
+
             /**
              * 2、创建设备
              */
-//        String entityName = "Guard-32e06bd9a009";
-            String entityName = "ProjectX-04";
+//        String entityName = "Guard-12e4553f6c33";
+            String entityName = "ProjectX-03";
             message.setPayload(getDevicePayload(entityName));
             System.out.println("create device");
 
@@ -81,30 +88,29 @@ public class SimpleMqttClient {
 //        message.setPayload(getServicePayload(entityName));
 //        System.out.println("create service");
 
-//            client.publish("v1/gateway/connect", message);
+            client.publish("v1/gateway/connect", message);
             Thread.sleep(2000);
             int i = 0;
 
 //            subAttributeUpdate(entityName, client);
-            long sleepTime = 10000;
+            long sleepTime = 5000;
             //get attribute from server
 //            waitAttribure(client);
-
-            while (i++ < 1 ){
+//            waitRpc(client);
+            while (i++ < 200 ){
                 long ts = System.currentTimeMillis();
 //                unsbuAttr(i, client);
 
-//                ping(client);
+                ping(client);
 
                 /**
                  * 3、发送属性数据
                  */
-                pubAttr(i, entityName, client);
+//                pubAttr(i, entityName, client);
                 /**
                  * 4、发送遥测数据
                  */
-                sendTelemetry(entityName, client, ts);
-                sendTelemetry(entityName, client, ts+12);
+//                sendTelemetry(entityName, client, ts+12);
 
                 /**
                  * 5、获取属性
@@ -117,7 +123,7 @@ public class SimpleMqttClient {
             }
 
             System.out.println("send finish");
-            Thread.sleep(20000);
+            Thread.sleep(2000000);
             client.disconnect();
             System.out.println("Disconnected");
             System.exit(0);
@@ -134,7 +140,7 @@ public class SimpleMqttClient {
         client.publish("v1/gateway/attributes", message);
     }
     private static void ping(MqttAsyncClient client) throws MqttException {
-        client.checkPing("a", new IMqttActionListener() {
+        client.checkPing(null, new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
                 System.out.println("ping success");
@@ -188,6 +194,25 @@ public class SimpleMqttClient {
         client.publish("v1/gateway/attributes/request", message);
     }
 
+    private static void waitRpc(MqttAsyncClient client) throws MqttException {
+        client.subscribe("v1/gateway/rpc", 1, null, new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                System.out.println("wait rpc command");
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+            }
+        }, new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                System.out.println("messageArrived topic:" + topic + ", message:" + message);
+            }
+        });
+    }
+
     private static void waitAttribure(MqttAsyncClient client) throws MqttException {
         client.subscribe("v1/gateway/attributes/response", 1, null, new IMqttActionListener() {
             @Override
@@ -210,7 +235,7 @@ public class SimpleMqttClient {
     private static void sendTelemetry(String entityName, MqttAsyncClient client, long ts) throws MqttException {
         MqttMessage message = new MqttMessage();
 
-        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version2\":\"1.0\",\"feature_id\":\"FeatureSTDMediaAlarm\",\"event_id\":\"STDMediaAlarmReport\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"media_url\":\"http://siothost:8080/api/v1/media/download/1ea89e07b31ead0abd14508d3aa1de2/afbf7a9c6ba98fb1111ca619576a51c1\"}}]}").getBytes());
+        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version2\":\"1.0\",\"call_id\":\"FeatureSTDMediaAlarm121\",\"feature_id\":\"FeatureSTDMediaAlarm\",\"event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"trigger_type\":1,\"audio_name\":\"音频路径\",\"audio_url\":\"http://siothost:8080/api/v1/media/download/1ea89e07b31ead0abd14508d3aa1de2/afbf7a9c6ba98fb1111ca619576a51c1\"}}]}").getBytes());
         client.publish("v1/gateway/telemetry", message);
         System.out.println("publish tel");
 

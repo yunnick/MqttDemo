@@ -12,6 +12,8 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static com.demo.mqtt.client.SimpleMqttClient.getDevicePayload;
 
@@ -25,7 +27,7 @@ public class MqttOneWaySslClient {
 
 //    private static final String token = "kZAXTQuYj5pMf7e3wxPN";//local
 //    private static final String token = "bUVoaTTqsUC5qxHUtfLI";//pi
-    private static final String token = "3YjfhRYRptdFblY1tfCo";//test
+    private static final String token = "VRJeadxogXmjfqq9owxD";//test
 
     private static final String CLIENT_ID = "MQTT_SSL_JAVA_CLIENT";
     private static final String KEY_STORE_FILE = "mqttserver.pub.pem";
@@ -55,6 +57,7 @@ public class MqttOneWaySslClient {
             e.printStackTrace();
         }
     }
+
     static void authProduct(SSLContext sslContext) throws MqttException, InterruptedException {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setSocketFactory(sslContext.getSocketFactory());
@@ -65,7 +68,7 @@ public class MqttOneWaySslClient {
 
         MqttMessage message = new MqttMessage();
 
-        String entityName = "ProjectX-02";
+        String entityName = "ProjectX-test1";
         message.setPayload(getDevicePayload(entityName));
         System.out.println("create device");
 
@@ -73,10 +76,10 @@ public class MqttOneWaySslClient {
         int i = 0;
         long ts = System.currentTimeMillis();
 
+        waitRpc(client);
 
-
-        long sleepTime = 1000;
-        while (i++ < 1000 ){
+        long sleepTime = 5000;
+        while (i++ < 100 ){
             client.checkPing("a", new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
@@ -92,23 +95,44 @@ public class MqttOneWaySslClient {
             /**
              * 3、发送属性数据
              */
-//            System.out.println("publish attr");
+            System.out.println("publish attr");
             message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\"}}").getBytes());
             client.publish("v1/gateway/attributes", message);
             /**
              * 4、发送遥测数据
              */
-//            System.out.println("publish tel");
+            System.out.println("publish tel");
 
-            message.setPayload(("{\""+ entityName +"\":[{\"ts\":"+ts+"," +
-                    "\"values\":{\"method\":\"deviceStateChangeResp2\",\"sub_type\":3}}]}").getBytes());
-            client.publish("v1/gateway/telemetry", message);
-
+//            message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version\":\"1.0\",\"call_id\":\"3211\",\"tm_feature_id\":\"FeatureSTDMediaAlarm\",\"tm_event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"trigger_type\":1,\"audio_name\":\"音频路径\",\"audio_url\":\"2222\"}}]}").getBytes());
+//            client.publish("v1/gateway/telemetry", message);
+            System.out.println("pub");
             Thread.sleep(sleepTime);
             System.out.println("send again" + i);
             ts += sleepTime;
         }
     }
+
+    private static void waitRpc(MqttAsyncClient client) throws MqttException {
+        String topic = "v1/gateway/rpc";//"v1/devices/me/rpc/request/+"
+        client.subscribe(topic, 1, null, new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                System.out.println("wait rpc command");
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+            }
+        }, new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S");
+                System.out.println(simpleDateFormat.format(new Date()) + " messageArrived topic:" + topic + ", message:" + message);
+            }
+        });
+    }
+
 
     static void authDevice(SSLContext sslContext) throws MqttException, InterruptedException {
         MqttConnectOptions options = new MqttConnectOptions();
