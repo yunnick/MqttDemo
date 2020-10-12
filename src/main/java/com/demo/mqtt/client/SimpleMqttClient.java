@@ -1,16 +1,18 @@
 package com.demo.mqtt.client;
 
+import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.paho.client.mqttv3.*;
 
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 public class SimpleMqttClient {
     //    private static final String MQTT_URL = "tcp://test-siot2.stc-seedland.com.cn:1883";
     private static final String MQTT_URL = "tcp://127.0.0.1:1883";
 //    private static final String MQTT_URL = "tcp://140.143.212.101:1883";//siot2
-//    private static final String MQTT_URL = "tcp://10.22.30.16:1883";//pi
+//    private static final String MQTT_URL = "tcp://10.22.30.3:1883";//pi
 
 //    private static final String MQTT_URL = "tcp://test-iot-as-mqtt.stc-seedland.com.cn:1883";
 
@@ -19,35 +21,56 @@ public class SimpleMqttClient {
         doMqtt();
     }
 
-    private static void doMqtt() throws InterruptedException {
-        try {
-            MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, RandomStringUtils.randomAlphanumeric(10));
-            MqttConnectOptions options = new MqttConnectOptions();
+    private static MqttAsyncClient accessTokenConnect() throws MqttException {
+        MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, RandomStringUtils.randomAlphanumeric(10));
+        MqttConnectOptions options = new MqttConnectOptions();
 //        options.setUserName("OFpEXYkYDqWi3EPnnT57");//PRO_h281D8AuvH32a8ujA6qm
 //        options.setUserName("YYdevGZ6kaXNct0FFdy1");//test service
 //        options.setUserName("TUcUIPKYbowXPFx0dB4y");//test device
 //            options.setUserName("bUVoaTTqsUC5qxHUtfLI");//pi
         options.setUserName("kZAXTQuYj5pMf7e3wxPN");//local
 //        options.setUserName("YYdevGZ6kaXNct0FFdy1");//local service
-            options.setKeepAliveInterval(0);
-
-            MqttMessage connMessage = new MqttMessage();
+        options.setKeepAliveInterval(0);
+        MqttMessage connMessage = new MqttMessage();
 //        connMessage.setPayload("{\"connect\":true}".getBytes());
+
+        connetc(client, options, connMessage);
+        return client;
+    }
+
+    private static MqttAsyncClient hmacConnect() throws MqttException {
+        long ts = System.currentTimeMillis() - 10;
+        String algorithm = "hmacsha256";
+        MqttAsyncClient client = new MqttAsyncClient(MQTT_URL,
+                RandomStringUtils.randomAlphanumeric(10) + "|algorithm="+algorithm+",request_ts="+ts+"|");
+        MqttConnectOptions options = new MqttConnectOptions();
+//        options.setUserName("OFpEXYkYDqWi3EPnnT57");//PRO_h281D8AuvH32a8ujA6qm
+//        options.setUserName("YYdevGZ6kaXNct0FFdy1");//test service
+//        options.setUserName("TUcUIPKYbowXPFx0dB4y");//test device
+//            options.setUserName("bUVoaTTqsUC5qxHUtfLI");//pi
+        options.setUserName("1ea73f0bb40e8c09ca89798392184f7");//local
+        String secret = "dmVonNMXf1f44XbRpaor";
+        String sign = Base64.getEncoder().encodeToString(HmacUtils.getInitializedMac(algorithm, secret.getBytes()).doFinal((ts+"").getBytes()));
+        options.setPassword(sign.toCharArray());
+//        options.setUserName("YYdevGZ6kaXNct0FFdy1");//local service
+        options.setKeepAliveInterval(0);
+        MqttMessage connMessage = new MqttMessage();
+//        connMessage.setPayload("{\"connect\":true}".getBytes());
+
+        connetc(client, options, connMessage);
+        return client;
+    }
+
+
+
+    private static void doMqtt() throws InterruptedException {
+        try {
             /**
              * 1、连接设备
              */
-            client.connect(options, connMessage, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    System.out.println("success with msg: " + asyncActionToken.getResponse());
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    System.err.println("fail with msg: " + asyncActionToken.getResponse());
-                    exception.printStackTrace();
-                }
-            });
+//            MqttAsyncClient client = accessTokenConnect();
+            MqttAsyncClient client = hmacConnect();
+            String entityName = "ProjectX-01";
             client.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
@@ -59,6 +82,11 @@ public class SimpleMqttClient {
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S");
                     System.out.println(simpleDateFormat.format(new Date()) + " get from topic " + topic + ": msg:"+message);
+//                    if (topic.equals("v1/product/rpc")){
+//                        Gson gson = new Gson();
+//                        Map payload = gson.fromJson(message.toString(), Map.class);
+//                        rpcResonse(client, ((Double) ((Map) payload.get("data")).get("id")).intValue(), entityName);
+//                    }
                 }
 
                 @Override
@@ -66,8 +94,14 @@ public class SimpleMqttClient {
 //                    System.out.println("deliveryComplete");
                 }
             });
+
+            int connTime = 0;
             while (!client.isConnected()){
+                connTime++;
                 System.out.println("connect...");
+                if (connTime == 10){
+                    break;
+                }
                 Thread.sleep(1000);
             }
             System.out.println("connected");
@@ -80,7 +114,7 @@ public class SimpleMqttClient {
              * 2、创建设备
              */
 //        String entityName = "Guard-12e4553f6c33";
-            String entityName = "ProjectX-03";
+
             message.setPayload(getDevicePayload(entityName));
             System.out.println("create device");
 
@@ -88,21 +122,22 @@ public class SimpleMqttClient {
 //        message.setPayload(getServicePayload(entityName));
 //        System.out.println("create service");
 
-            client.publish("v1/gateway/connect", message);
+            client.publish("v1/product/connect", message);
             Thread.sleep(2000);
             int i = 0;
 
-//            subAttributeUpdate(entityName, client);
+            subAttributeUpdate(entityName, client);
             long sleepTime = 5000;
             //get attribute from server
-//            waitAttribure(client);
+            waitAttribure(client);
 //            waitRpc(client);
-            while (i++ < 200 ){
+            while (i++ < 1){
                 long ts = System.currentTimeMillis();
 //                unsbuAttr(i, client);
 
-                ping(client);
+//                ping(client);
 
+//                sendHeartbeat(entityName, client, ts);
                 /**
                  * 3、发送属性数据
                  */
@@ -110,7 +145,9 @@ public class SimpleMqttClient {
                 /**
                  * 4、发送遥测数据
                  */
-//                sendTelemetry(entityName, client, ts+12);
+//                if (i ==1){
+                    sendTelemetry(entityName, client, ts+12);
+//                }
 
                 /**
                  * 5、获取属性
@@ -119,6 +156,7 @@ public class SimpleMqttClient {
 
                 Thread.sleep(sleepTime);
                 System.out.println("send again" + i);
+//                client.close(true);
 
             }
 
@@ -129,15 +167,30 @@ public class SimpleMqttClient {
             System.exit(0);
         }catch (MqttException e){
             e.printStackTrace();
-            doMqtt();
+//            doMqtt();
         }
+    }
+
+    private static void connetc(MqttAsyncClient client, MqttConnectOptions options, MqttMessage connMessage ) throws MqttException {
+        client.connect(options, connMessage, new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                System.out.println("success with msg: " + asyncActionToken.getResponse());
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                System.err.println("fail with msg: " + asyncActionToken.getResponse());
+                exception.printStackTrace();
+            }
+        });
     }
 
     private static void pubAttr(int cycle, String entityName, MqttAsyncClient client) throws MqttException {
         MqttMessage message = new MqttMessage();
         //            System.out.println("publish attr");
         message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\",\"confs\":\"confsVa"+cycle+"\"}}").getBytes());
-        client.publish("v1/gateway/attributes", message);
+        client.publish("v1/product/attributes", message);
     }
     private static void ping(MqttAsyncClient client) throws MqttException {
         client.checkPing(null, new IMqttActionListener() {
@@ -156,7 +209,7 @@ public class SimpleMqttClient {
     private static void unsbuAttr(int cycle, MqttAsyncClient client) throws MqttException {
         if (cycle == 3){
             System.out.println("===unsubscribe response");
-            client.unsubscribe("v1/gateway/attributes/response");
+            client.unsubscribe("v1/product/attributes/response");
         }
     }
 
@@ -164,7 +217,7 @@ public class SimpleMqttClient {
 
         MqttMessage message = new MqttMessage();
         //get attribute from server
-        client.subscribe("v1/gateway/attributes", 1, null, new IMqttActionListener() {
+        client.subscribe("v1/product/attributes", 1, null, new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
                 System.out.println("subscribe attribute response");
@@ -191,11 +244,20 @@ public class SimpleMqttClient {
 //        System.out.println(payload);
         message.setPayload(payload.getBytes());
 //        message.setPayload(("{\"id\":"+count+",\"device\":\"" +entityName+ "\"}").getBytes());
-        client.publish("v1/gateway/attributes/request", message);
+        client.publish("v1/product/attributes/request", message);
+    }
+
+    private static void rpcResonse(MqttAsyncClient client, int reqId, String entityName) throws MqttException {
+        MqttMessage message = new MqttMessage();
+        String topic = "v1/product/rpc";
+        String payload = "{\"id\":"+(reqId)+",\"device\":\"" +entityName+ "\",\"data\":false}";
+        System.out.println(payload);
+        message.setPayload(payload.getBytes());
+        client.publish(topic, message);
     }
 
     private static void waitRpc(MqttAsyncClient client) throws MqttException {
-        client.subscribe("v1/gateway/rpc", 1, null, new IMqttActionListener() {
+        client.subscribe("v1/product/rpc", 1, null, new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
                 System.out.println("wait rpc command");
@@ -214,7 +276,7 @@ public class SimpleMqttClient {
     }
 
     private static void waitAttribure(MqttAsyncClient client) throws MqttException {
-        client.subscribe("v1/gateway/attributes/response", 1, null, new IMqttActionListener() {
+        client.subscribe("v1/product/attributes/response", 1, null, new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
                 System.out.println("get attribute response");
@@ -235,8 +297,19 @@ public class SimpleMqttClient {
     private static void sendTelemetry(String entityName, MqttAsyncClient client, long ts) throws MqttException {
         MqttMessage message = new MqttMessage();
 
-        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"version2\":\"1.0\",\"call_id\":\"FeatureSTDMediaAlarm121\",\"feature_id\":\"FeatureSTDMediaAlarm\",\"event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"trigger_type\":1,\"audio_name\":\"音频路径\",\"audio_url\":\"http://siothost:8080/api/v1/media/download/1ea89e07b31ead0abd14508d3aa1de2/afbf7a9c6ba98fb1111ca619576a51c1\"}}]}").getBytes());
-        client.publish("v1/gateway/telemetry", message);
+        message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"trace_id\":\""+RandomStringUtils.randomAlphabetic(10)+"\",\"version\":\"1.0\",\"trace_time\":"+ts+",\"call_id\":\"198777\",\"tm_feature_id\":\"FeatureSTDMediaAlarm\",\"tm_event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"trigger_type\":1,\"audio_name\":\"音频路径\",\"audio_url\":\"http://siothost:8080/api/v1/media/download/1ea89e07b31ead0abd14508d3aa1de2/afbf7a9c6ba98fb1111ca619576a51c1\"}}]}").getBytes());
+        client.publish("v1/product/telemetry", message);
+        System.out.println("publish tel");
+
+    }
+
+    private static void sendHeartbeat(String entityName, MqttAsyncClient client, long ts) throws MqttException {
+        MqttMessage message = new MqttMessage();
+
+        String hbm = "{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"trace_id\":\""+RandomStringUtils.randomAlphabetic(10)+"\",\"version\":\"1.0\",\"trace_time\":"+ts+",\"call_id\":\"198777\",\"tm_feature_id\":\"FeatureSTDMediaAlarm\",\"tm_event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"state\":400}}]}";
+
+        message.setPayload(hbm.getBytes());
+        client.publish("v1/product/heartbeat", message);
         System.out.println("publish tel");
 
     }

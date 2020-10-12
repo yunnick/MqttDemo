@@ -63,6 +63,11 @@
             <version>${gson.version}</version>
         </dependency>
         <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.14</version>
+        </dependency>
+        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>${netty-all.version}</version>
@@ -87,6 +92,24 @@
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
             <version>1.2.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.2.4.RELEASE</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mortbay.jetty.alpn/alpn-boot -->
+        <dependency>
+            <groupId>org.mortbay.jetty.alpn</groupId>
+            <artifactId>alpn-boot</artifactId>
+            <version>8.1.13.v20181017</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <profiles>
