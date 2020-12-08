@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Multiclient {
 
-    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:8883";
+    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:28883";
 
     private static final String CLIENT_ID = "MQTT_SSL_JAVA_CLIENT";
-    private static final String KEY_STORE_FILE = "mqttserver.pub.pem";
+    private static final String KEY_STORE_FILE = "mqttserver-test.pub.pem";
 
     private static final String JKS = "JKS";
     private static final String TLS = "TLSV1.2";
@@ -48,7 +48,7 @@ public class Multiclient {
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setSocketFactory(sslContext.getSocketFactory());
-        options.setUserName("aAbJ3Ey0gpglBng3Fb0O");
+        options.setUserName("UYrNpSvxJ9KtZb9nxZ6u");
 
         return options;
     }
@@ -61,8 +61,8 @@ public class Multiclient {
 
     public static void main(String[] args) throws Exception {
 
-        int clientNum = 150;
-        int cycleNum = 30;
+        int clientNum = 1;
+        int cycleNum = 1;
         for (int i = 0; i < cycleNum; i++) {
             connect(clientNum);
         }

@@ -1,30 +1,30 @@
 package com.demo.mqtt.client;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.eclipse.paho.client.mqttv3.*;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SimpleMultiMqttClient {
+public class SimpleMultiMqttClient3 {
     //    private static final String MQTT_URL = "tcp://test-siot2.stc-seedland.com.cn:1883";
     private static final String MQTT_URL = "tcp://127.0.0.1:1883";
 //    private static final String MQTT_URL = "tcp://140.143.212.101:1883";//siot2
 //    private static final String MQTT_URL = "tcp://10.22.62.202:1883";//pi
 
 //    private static final String MQTT_URL = "tcp://test-iot-as-mqtt.stc-seedland.com.cn:1883";
-    static ScheduledExecutorService executorService = null;//Executors.newScheduledThreadPool(6000);
+
+    static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(6000);
+
     static ExecutorService es = Executors.newFixedThreadPool(100);
 
     public static void main(String[] args) throws Exception {
         AtomicInteger connCount = new AtomicInteger(0);
-        for (int i = 0; i < 2000; i++){
+        for (int i = 0; i < 100; i++){
             final int  idx = i;
             Future f = es.submit(() -> {
                 try {
@@ -35,14 +35,14 @@ public class SimpleMultiMqttClient {
                 connCount.incrementAndGet();
                 return "";
             });
+            Thread.sleep(100);
         }
     }
 
     private static void doMqtt(int i) throws InterruptedException {
         try {
-            MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, "mqtclient1-"+RandomStringUtils.randomAlphanumeric(10),
-                    new MqttDefaultFilePersistence(),
-                    new TimerPingSender(), executorService);
+            MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, "mqtclient3-" + i + "-" +RandomStringUtils.randomAlphanumeric(10),
+                    new MqttDefaultFilePersistence(), new TimerPingSender(), executorService);
             MqttConnectOptions options = new MqttConnectOptions();
 //        options.setUserName("OFpEXYkYDqWi3EPnnT57");//PRO_h281D8AuvH32a8ujA6qm
 //        options.setUserName("YYdevGZ6kaXNct0FFdy1");//test service
@@ -57,7 +57,6 @@ public class SimpleMultiMqttClient {
             /**
              * 1、连接设备
              */
-            System.out.println(i+" try to connect");
             client.connect(options, connMessage, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
@@ -69,8 +68,12 @@ public class SimpleMultiMqttClient {
                     System.err.println(i + "fail with msg: " + asyncActionToken.getResponse());
                     exception.printStackTrace();
                 }
-            }).waitForCompletion();
-            System.out.println(i+" connected");
+            });
+            while (!client.isConnected()){
+                System.out.println(i+"connect...");
+                Thread.sleep(1000);
+            }
+            System.out.println("connected");
             Thread.sleep(1000);
             MqttMessage message = new MqttMessage();
             /**

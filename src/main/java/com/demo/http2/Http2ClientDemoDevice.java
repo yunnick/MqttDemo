@@ -20,7 +20,7 @@ public class Http2ClientDemoDevice {
             doSimpleGet();
 //            doGetRpc();
 //            doGetAttributeUpdate();
-//            doPostAttribute();
+            doPostAttribute();
 //            doGetAttribute();
         } catch (Exception e) {
             e.printStackTrace();

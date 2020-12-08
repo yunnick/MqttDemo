@@ -15,19 +15,20 @@ import java.util.Base64;
 public class Http2ClientDemoProduct {
 
     private static OkHttpClient client;
-//    static String hostName = "https://ppe-iot-as-http2.stc-seedland.com.cn:8843";
-    static String hostName = "https://iot-as-http2.stc-seedland.com.cn:8443";
-//static String hostName = "https://testhttp2.stc-seedland.com.cn:8443";
+//    static String hostName = "https://ppe-iot-as-http2.stc-seedland.com.cn:8853";
+    static String hostName = "https://test-iot-as-http2.stc-seedland.com.cn:8443";
+//    static String hostName = "https://iot-as-http2.stc-seedland.com.cn:8443";
+//static String hostName = "https://testhttp2.stc-seedland.com.cn:8843";
     public static void main(String[] args) {
 
         try {
             String ca = "stc-seedland.com.cn.pub.pem";
 //            String ca = "htt2server-local.pub.pem";
             initClient(ca);
-            doGetDemo();
+//            doGetDemo();
 //            doPostHeartbeat();
 //            doPostTelemetry();
-//            doPostAttributes();
+            doPostAttributes();
 //            doGetAttributes();
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,8 +42,8 @@ public class Http2ClientDemoProduct {
         String url = hostName+"/api/v1/product/demo";
 //        String url = "https://10.22.30.36:8443/api/v1/product/heartbeat";
         String algorithm = "hmacsha1";
-        String id = "1ea73f0bb40e8c09ca89798392184f7";
-        String secret = "dmVonNMXf1f44XbRpaor";
+        String id = "1ea005c51873c70a91be533014be8ca";
+        String secret = "AsYVQPSb6iHQzkPi1mJC";
         String ts = System.currentTimeMillis() + "";
         String sign = Base64.getEncoder().encodeToString(HmacUtils.getInitializedMac(algorithm, secret.getBytes()).doFinal((ts).getBytes()));
         // build request
@@ -65,23 +66,24 @@ public class Http2ClientDemoProduct {
 //        String url = "https://test-iot-as-http2.stc-seedland.com.cn:8443/api/v1/product/demo";
 //        String url = "https://10.22.30.36:8443/api/v1/product/heartbeat";
         String algorithm = "hmacsha1";
-        String id ="1eb02d1e7c54e208ac2dda33080d9f3";//prod
-        String secret = "hCDtmNAtBucnSq8Ahkmj";
-//        String id = "1eb0186d8d671b0ac55b387b07b3667";//test
-//        String secret = "bfWTd8cpqhKPiiiEv1sS";
-//        String id = "1ea73f0bb40e8c09ca89798392184f7";//local
-//        String secret = "dmVonNMXf1f44XbRpaor";
+//        String id ="1eb0d328ff77fe0a9b365991606617d";//prod
+//        String secret = "SKR2477UA1pwAy5OCSiN";
+        String id = "1eb2966b1fd69b0ad6e15eba815a469";//test
+        String secret = "aCyg7RfV2hFSnJ5k1LKe";
+//        String id = "1eab549288ab3409514b74da6ec48fc";//local
+//        String secret = "fkm8EoISNYcXGvuUVOe8";
         String ts = System.currentTimeMillis() + "";
         String sign = Base64.getEncoder().encodeToString(HmacUtils.getInitializedMac(algorithm, secret.getBytes()).doFinal((ts).getBytes()));
         // build request
+//        String body = "{\"device_name\":\"httpDevice221\",\"tm_event_id\":\"httpuptel\",\"ts\":1601018100344,\"state\":500,\"error_code\":true,\"msg\":1231.3,\"msg2\":1233}";
+        String body = "{\"device_name\":\"http11Device2221\",\"tm_event_id\":\"httpuptel2\",\"ts\":"+System.currentTimeMillis()+",\"state\":300,\"error_code\":true,\"msg\":1221.1,\"msg2\":12133}";
         Request request = new Request.Builder()
                 .addHeader("device-version", "1.0")
                 .addHeader("request-ts", ts)
                 .addHeader("authorization", "hmac id="+id+",algorithm="+algorithm+",headers=request-ts,signature="+sign)
                 .addHeader("Connection", "Upgrade, HTTP2-Settings")
                 .addHeader("Upgrade", "h2c")
-                .method("POST", RequestBody.create(MediaType.parse("application/json"),
-                        "{\"device_name\":\"httpDevice221\",\"tm_event_id\":\"httpuptel\",\"ts\":1601018100344,\"state\":500,\"error_code\":true,\"msg\":1231.3,\"msg2\":1233}"))
+                .method("POST", RequestBody.create(MediaType.parse("application/json"), body))
                 .url(url)
                 .build();
         execute(request);
