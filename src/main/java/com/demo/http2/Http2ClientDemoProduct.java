@@ -14,21 +14,22 @@ import java.util.Base64;
 
 public class Http2ClientDemoProduct {
 
-    private static OkHttpClient client;
-//    static String hostName = "https://ppe-iot-as-http2.stc-seedland.com.cn:8853";
-    static String hostName = "https://test-iot-as-http2.stc-seedland.com.cn:8443";
+    private static OkHttpClient client = new OkHttpClient.Builder().build();
+    static String hostName = "https://ppe-iot-as-http2.stc-seedland.com.cn:8843";
+//    static String hostName = "https://test-iot-as-http2.stc-seedland.com.cn:8443";
 //    static String hostName = "https://iot-as-http2.stc-seedland.com.cn:8443";
 //static String hostName = "https://testhttp2.stc-seedland.com.cn:8843";
+//    static String hostName = "http://testhttp2.stc-seedland.com.cn:8080";
     public static void main(String[] args) {
 
         try {
             String ca = "stc-seedland.com.cn.pub.pem";
 //            String ca = "htt2server-local.pub.pem";
-            initClient(ca);
+//            initClient(ca);
 //            doGetDemo();
-//            doPostHeartbeat();
+            doPostHeartbeat();
 //            doPostTelemetry();
-            doPostAttributes();
+//            doPostAttributes();
 //            doGetAttributes();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,15 +69,15 @@ public class Http2ClientDemoProduct {
         String algorithm = "hmacsha1";
 //        String id ="1eb0d328ff77fe0a9b365991606617d";//prod
 //        String secret = "SKR2477UA1pwAy5OCSiN";
-        String id = "1eb2966b1fd69b0ad6e15eba815a469";//test
-        String secret = "aCyg7RfV2hFSnJ5k1LKe";
-//        String id = "1eab549288ab3409514b74da6ec48fc";//local
-//        String secret = "fkm8EoISNYcXGvuUVOe8";
+//        String id = "1eb2966b1fd69b0ad6e15eba815a469";//test
+//        String secret = "aCyg7RfV2hFSnJ5k1LKe";
+        String id = "1eab549288ab3409514b74da6ec48fc";//local
+        String secret = "fkm8EoISNYcXGvuUVOe8";
         String ts = System.currentTimeMillis() + "";
         String sign = Base64.getEncoder().encodeToString(HmacUtils.getInitializedMac(algorithm, secret.getBytes()).doFinal((ts).getBytes()));
         // build request
 //        String body = "{\"device_name\":\"httpDevice221\",\"tm_event_id\":\"httpuptel\",\"ts\":1601018100344,\"state\":500,\"error_code\":true,\"msg\":1231.3,\"msg2\":1233}";
-        String body = "{\"device_name\":\"http11Device2221\",\"tm_event_id\":\"httpuptel2\",\"ts\":"+System.currentTimeMillis()+",\"state\":300,\"error_code\":true,\"msg\":1221.1,\"msg2\":12133}";
+        String body = "{\"device_name\":\"http11Device2221\",\"tm_event_id\":\"httpuptel2\",\"ts\":"+System.currentTimeMillis()+",\"state\":200,\"error_code\":true,\"msg\":1221.1,\"msg2\":12133}";
         Request request = new Request.Builder()
                 .addHeader("device-version", "1.0")
                 .addHeader("request-ts", ts)
@@ -112,7 +113,7 @@ public class Http2ClientDemoProduct {
 
     static void doPostAttributes() throws Exception {
 
-        String url = "https://10.22.30.36:8443/api/v1/product/attributes";
+        String url = hostName + "/api/v1/product/attributes";
         String algorithm = "hmacsha1";
         String id = "1ea73f0bb40e8c09ca89798392184f7";
         String secret = "dmVonNMXf1f44XbRpaor";

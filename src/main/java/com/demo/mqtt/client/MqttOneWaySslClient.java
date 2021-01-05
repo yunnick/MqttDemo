@@ -18,6 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.demo.mqtt.client.SimpleMqttClient.getDevicePayload;
 
@@ -26,28 +28,33 @@ public class MqttOneWaySslClient {
 //    private static final String MQTT_URL = "ssl://test-siot2.stc-seedland.com.cn:8883";
 //    private static final String MQTT_URL = "ssl://mqttserver.com:8883";
 //    private static final String MQTT_URL = "ssl://127.0.0.1:8883";
-//    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:28883";
-//    private static final String MQTT_URL = "ssl://ppe-iot-as-mqtt.stc-seedland.com.cn:8843";
-      private static final String MQTT_URL = "ssl://iot-as-mqtt.stc-seedland.com.cn:8883";
+    private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:28883";
+//    private static final String MQTT_URL = "ssl://ppe-iot-as-mqtt.stc-seedland.com.cn:8883";
+//      private static final String MQTT_URL = "ssl://iot-as-mqtt.stc-seedland.com.cn:8883";
 //private static final String MQTT_URL = "ssl://10.22.62.202:8883";
 
-        private static final String token = "dFX8gb6yjkext2oJprCA";//prod
-private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
+//        private static final String token = "dFX8gb6yjkext2oJprCA";//prod
+//private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
 //    private static final String token = "fkm8EoISNYcXGvuUVOe8";//local
 //private static final String productId ="1eab549288ab3409514b74da6ec48fc";
     //    private static final String token = "bUVoaTTqsUC5qxHUtfLI";//pi
-//    private static final String token = "Gj6QIj1A3oKSM1EBzsn9";//ppe
-//    private static final String productId = "1eac74399a11b308ca4dba45ded7978";//ppe
-//    private static final String token = "VRJeadxogXmjfqq9owxD";//test
-//    private static final String productId = "1eae751be8313d0bdb0bb4e26fd76ba";//test
+//    private static final String token = "6NBZ3wz403QIkQcB3cJw";//ppe
+//    private static final String productId = "1eb0c78418f47d0889fd32c1d22231d";//ppe
+    private static final String token = "VRJeadxogXmjfqq9owxD";//test
+    private static final String productId = "1eae751be8313d0bdb0bb4e26fd76ba";//test
+//        private static final String token = "cJEpibj2yoV4y1QuEdV7";//test 烟感
+//    private static final String productId = "1eb40e18e470390b2fc939b02237f4a";//test
+
     private static final String deviceToken = "pypD4bKxD5M5EFuIInPi";//test
     private static final String deviceId = "1eb023e0a8e2dd0969a1bcd28f2e855";//test
 
     private static final String CLIENT_ID = "MQTT_SSL_JAVA_CLIENT";
 //    private static final String KEY_STORE_FILE = "mqttserver.pub.pem";
 //    private static final String KEY_STORE_FILE = "mqttserver_local.pem";
-//    private static final String KEY_STORE_FILE = "mqttserver-test.pub.pem";
-    private static final String KEY_STORE_FILE = "mqttserver-pro.pub.pem";
+//    private static final String KEY_STORE_FILE = "mqttserver-ppe.pub.pem";
+
+    private static final String KEY_STORE_FILE = "mqttserver-test.pub.pem";
+//    private static final String KEY_STORE_FILE = "mqttserver-pro.pub.pem";
 
 //private static final String KEY_STORE_FILE = "stc-seedland.com.cn.pub.pem";
 
@@ -99,10 +106,10 @@ private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
         client.connect(options).waitForCompletion();
         return client;
     }
-//    static String entityName = "defaultDeviceName";
+//    static String entityName = "烟感一";
 //    static String entityName = "virtual_px3";
-//    static String entityName = "ProjectX-05";
-    static String entityName = "Guard-12e4553f6c33";
+    static String entityName = "ProjectX-05";
+//    static String entityName = "Guard-12e4553f6c33";
 
     static void authProduct(SSLContext sslContext) throws MqttException, InterruptedException {
 
@@ -125,8 +132,8 @@ private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
 //        waitAttribure(client);
 
 //        requestAttrubute(entityName, client, 1);
-        long sleepTime = 5000;
-        while (i++ < 1 ){
+        long sleepTime = 2000;
+        while (i++ < 100 ){
 //            client.checkPing("a", new IMqttActionListener() {
 //                @Override
 //                public void onSuccess(IMqttToken asyncActionToken) {
@@ -142,28 +149,31 @@ private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
             /**
              * 3、发送属性数据
              */
-            System.out.println("publish attr");
+//            System.out.println("publish attr");
             if (otaVerion != null){
-                System.out.println("publish attr with version:" + otaVerion);
+//                System.out.println("publish attr with version:" + otaVerion);
 //                message.setPayload(("{\""+entityName+"\":{\"firm_version\":\""+otaVerion+"\"}}").getBytes());
 //                pubOTAProcess(entityName, client);
             }else {
-                message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\"}}").getBytes());
-//                message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\", \"firm_version\":\"v1.0.2\"}}").getBytes());
+                message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\", \"firm_version\":\"v1.0.0\"}}").getBytes());
+                client.publish("v1/gateway/attributes", message);
             }
+            message.setPayload(("{\""+entityName+"\":{\"groupId\":\"0011120\"}}").getBytes());
 //            pubOTAProcess(entityName, client);
-
 //            client.publish("v1/gateway/attributes", message);
+
             /**
              * 4、发送遥测数据
              */
 //            if (i == 1){
-                System.out.println("publish tel");
+//                System.out.println("publish tel");
 
 //                 message.setPayload(("{\""+entityName+"\":[{\"ts\":"+ts+",\"values\":{\"trace_id\":\""+RandomStringUtils.randomAlphabetic(10)+"\",\"version\":\"1.0\",\"flag\":\"1\",\"trace_time\":"+ts+",\"call_id\":\"198777\",\"tm_feature_id\":\"FeatureSTDMediaAlarm\",\"tm_event_id\":\"STDMediaAlarmReport\",\"keyword\":\"救命\",\"action_time\":"+(ts - 1000)+",\"action_type\":\"42010000500\",\"trigger_type\":1,\"audio_name\":\"音频路径\",\"audio_url\":\"https://test-media.stc-seedland.com.cn/tencent/api/v1/iot/media/download/beijing/1eae751be8313d0bdb0bb4e26fd76ba/2020/11/27/a3a833da783ca8c1a69ef43856b2f595-help.wav\"}}]}").getBytes());
+//            String yanganTel = "{\""+entityName+"\":[{\"values\":{\"alarm_msg\":\"火警警报\",\"alarm_code\":1,\"severity\":0,\"version\":\"1.0\",\"tm_event_id\":\"DeviceAlarm\",\"tm_feature_id\":\"FeatureSTDDeviceProperties\",\"trace_time\":1608263980507,\"trace_id\":\"5510c78e-c53d-462d-9aaf-83b6ac2f15cc\"},\"ts\":1608263980507}]}";
+//                message.setPayload(yanganTel.getBytes());
                 message.setPayload(("{\"Guard-12e4553f6c33\":[{\"ts\":"+ts+",\"values\":{\"version\":\"v1.0.12\",\"tm_feature_id\":\"FeatureSTDMediaAlarm\",\"trace_id\":1606455896,\"trace_time\":1606455896,\"tm_event_id\": \"STDMediaAlarmReport\",\"trigger_type\":1,\"action_time\":1606455899564,\"action_type\":\"42010000500\",\"keyword\":\"救命\",\"audio_url\":\"https://media.stc-seedland.com.cn/tencent/api/v1/iot/media/download/beijing/1eb2899b0c722c091ef472eda095fa1/2020/11/27/645180bce5692aa0974ba48aa1c46b6c-20201127134456_1606455896.wav\", \"audio_name\":\"./audio/20201127134456_1606455896.wav\", \"call_id\":\"181084619\", \"start_time\":\"1606455896\",\"call_time\":\"1606455899\", \"recv_time\":\"1\",\"flag\":\"1\"}}]}").getBytes());
                 client.publish("v1/gateway/telemetry", message);
-                System.out.println("pub");
+//                System.out.println("pub");
 //            }
             Thread.sleep(sleepTime);
             System.out.println("send again" + i);
@@ -198,15 +208,48 @@ private static final String productId ="1eb2899b0c722c091ef472eda095fa1";
                     System.out.println(e);
                 }
                 rpcResonse(client, ((Double) ((Map) payload.get("data")).get("id")).intValue(), entityName);
-                pubOTAProcess(entityName, client);
+                sendProcess(entityName, client);
+//                pubOTAProcessError(entityName, client);
             }
         });
     }
 
-    private static void pubOTAProcess(String entityName, MqttAsyncClient client) throws MqttException {
+    static ExecutorService es = Executors.newSingleThreadExecutor();
+    private static void sendProcess(String entityName, MqttAsyncClient client){
+        es.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < 100; i++){
+                        MqttMessage message = new MqttMessage();
+                        Thread.sleep(2000);
+                        pubOTAProcess(entityName, client, i);
+                        if (i == 99){
+                            System.out.println("publish attr with version:" + otaVerion);
+                            message.setPayload(("{\""+entityName+"\":{\"firm_version\":\""+otaVerion+"\"}}").getBytes());
+                            client.publish("v1/gateway/attributes", message);
+                            break;
+                        }
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private static void pubOTAProcessError(String entityName, MqttAsyncClient client) throws MqttException {
         MqttMessage message = new MqttMessage();
         //            System.out.println("publish attr");
         message.setPayload(("{\""+entityName+"\":{\"step\":-1,\"desc\":\"md5校验失败\"}}").getBytes());
+        client.publish("v1/product/ota/process", message);
+    }
+
+    private static void pubOTAProcess(String entityName, MqttAsyncClient client, int percent) throws MqttException {
+        MqttMessage message = new MqttMessage();
+        String msg = "{\""+entityName+"\":{\"step\":"+percent+",\"desc\":\"in ota upgrade process\"}}";
+                    System.out.println("publish OTAProcess percent:"+percent);
+        message.setPayload(msg.getBytes());
         client.publish("v1/product/ota/process", message);
     }
 

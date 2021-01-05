@@ -3,6 +3,7 @@ package com.demo.http2;
 import com.google.common.io.Resources;
 import okhttp3.*;
 import okhttp3.internal.http2.Http2Connection;
+import org.apache.commons.codec.digest.HmacUtils;
 
 import javax.net.ssl.*;
 import java.io.File;
@@ -10,17 +11,23 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 
 public class Http2ClientDemoDevice {
 
-    private static OkHttpClient client;
+    private static OkHttpClient client  = new OkHttpClient.Builder().build();
+        static String hostName = "https://ppe-iot-as-http2.stc-seedland.com.cn:8843";
+//    static String hostName = "https://test-iot-as-http2.stc-seedland.com.cn:8443";
+//    static String hostName = "https://iot-as-http2.stc-seedland.com.cn:8443";
+//    static String hostName = "https://testhttp2.stc-seedland.com.cn:8843";
+//    static String hostName = "http://testhttp2.stc-seedland.com.cn:8080";
     public static void main(String[] args) {
         try {
-            initClient();
-            doSimpleGet();
-//            doGetRpc();
+//            initClient();
+//            doSimpleGet();
+            doGetRpc();
 //            doGetAttributeUpdate();
-            doPostAttribute();
+//            doPostAttribute();
 //            doGetAttribute();
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,11 +61,21 @@ public class Http2ClientDemoDevice {
     }
     static void doGetRpc() throws Exception {
 
-        String url = "https://test-iot-as-http2.stc-seedland.com.cn:8443/api/v1/9bbsYlUKF4SUnqlzVovU/rpc";
+        String url = hostName + "/api/v1/device/rpc?timeout=100000";
+        String algorithm = "hmacsha1";
+        String id = "1eb295d3e7f9ca08e49cb0ad6dcf41a";
+        String secret = "q3JT98ibplqYfbjpK7sW";
+        String ts = System.currentTimeMillis() + "";
+        String sign = Base64.getEncoder().encodeToString(HmacUtils.getInitializedMac(algorithm, secret.getBytes()).doFinal((ts).getBytes()));
+
         // build request
         Request request = new Request.Builder()
+                .addHeader("device-version", "1.0")
+                .addHeader("request-ts", ts)
+                .addHeader("authorization", "hmac id="+id+",algorithm="+algorithm+",headers=request-ts,signature="+sign)
                 .addHeader("Connection", "Upgrade, HTTP2-Settings")
                 .addHeader("Upgrade", "h2c")
+                .method("GET", null)
                 .url(url)
                 .build();
         execute(request);

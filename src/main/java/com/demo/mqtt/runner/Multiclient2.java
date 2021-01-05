@@ -2,23 +2,21 @@ package com.demo.mqtt.runner;
 
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Multiclient {
+public class Multiclient2 {
 
     private static final String MQTT_URL = "ssl://test-iot-as-mqtt.stc-seedland.com.cn:28883";
 
@@ -35,7 +33,7 @@ public class Multiclient {
 
     static MqttConnectOptions initConnOpiton() throws Exception {
         CertificateFactory cAf = CertificateFactory.getInstance("X.509");
-        InputStream caIn = Multiclient.class.getClassLoader().getResourceAsStream(KEY_STORE_FILE);//FileInputStream caIn = new FileInputStream(new File(Resources.getResource(KEY_STORE_FILE).toURI()));
+        FileInputStream caIn = new FileInputStream(new File(Resources.getResource(KEY_STORE_FILE).toURI()));
         X509Certificate ca = (X509Certificate) cAf.generateCertificate(caIn);
         KeyStore caKs = KeyStore.getInstance(JKS);
         caKs.load(null, null);

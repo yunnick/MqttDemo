@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SimpleMultiMqttClient {
     //    private static final String MQTT_URL = "tcp://test-siot2.stc-seedland.com.cn:1883";
-    private static final String MQTT_URL = "tcp://127.0.0.1:1883";
+    private static final String MQTT_URL = "tcp://10.22.30.36:1883";
 //    private static final String MQTT_URL = "tcp://140.143.212.101:1883";//siot2
 //    private static final String MQTT_URL = "tcp://10.22.62.202:1883";//pi
 

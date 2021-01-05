@@ -20,8 +20,8 @@ public class SimpleMqttClient {
 
 
     public static void main(String[] args) throws Exception {
-//        doMqtt();
-        directSend();
+        doMqtt();
+//        directSend();
     }
 
     private static MqttAsyncClient accessTokenConnect() throws MqttException {
@@ -133,13 +133,14 @@ public class SimpleMqttClient {
             Thread.sleep(2000);
             int i = 0;
 
-            subAttributeUpdate(entityName, client);
-            long sleepTime =3000;
+//            subAttributeUpdate(entityName, client);
+            long sleepTime =10000;
             //get attribute from server
-            waitAttribure(client);
-            waitRpc(client);
+//            waitAttribure(client);
+//            waitRpc(client);
 
-            while (i++ < 0){
+            pubOTAModule(entityName, client);
+            while (i++ < 100){
                 long ts = System.currentTimeMillis();
 //                unsbuAttr(i, client);
 
@@ -156,13 +157,13 @@ public class SimpleMqttClient {
                  * 4、发送遥测数据
                  */
 //                if (i ==1){
-                    sendTelemetry(entityName, client, ts+12);
+//                    sendTelemetry(entityName, client, ts+12);
 //                }
 
                 /**
                  * 5、获取属性
                  */
-                requestAttrubute(entityName, client, i);
+//                requestAttrubute(entityName, client, i);
 
                 /**
                  * 6、ota 进度
@@ -205,7 +206,7 @@ public class SimpleMqttClient {
 
     private static void pubAttr(int cycle, String entityName, MqttAsyncClient client) throws MqttException {
         MqttMessage message = new MqttMessage();
-        //            System.out.println("publish attr");
+                    System.out.println("publish attr");
         message.setPayload(("{\""+entityName+"\":{\"firm_version\":\"1.1.2\",\"confs\":\"confsVa"+cycle+"\"}}").getBytes());
         client.publish("v1/product/attributes", message);
     }
@@ -215,6 +216,13 @@ public class SimpleMqttClient {
         System.out.println("ota process message is send!!!");
         message.setPayload(("{\""+entityName+"\":{\"step\":-1,\"desc\":\"md5校验失败\"}}").getBytes());
         client.publish("v1/product/ota/process", message);
+    }
+
+    private static void pubOTAModule(String entityName, MqttAsyncClient client) throws MqttException {
+        MqttMessage message = new MqttMessage();
+        System.out.println("ota module message is send!!!");
+        message.setPayload(("{\""+entityName+"\":{\"modules\":[{\"name\":\"moduleA\",\"version\":\"v1.0.1\"},{\"name\":\"moduleB\",\"version\":\"v1.0.1\"}]}}").getBytes());
+        client.publish("v1/product/ota/inform", message);
     }
 
     private static void ping(MqttAsyncClient client) throws MqttException {
